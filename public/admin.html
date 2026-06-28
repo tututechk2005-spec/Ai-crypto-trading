@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Panel — AI Crypto Trading</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .admin-wrapper { max-width:900px; margin:0 auto; padding:16px; }
+  .admin-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:var(--card); border-bottom:1px solid var(--border); margin-bottom:16px; border-radius:var(--radius); }
+  .admin-sidebar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+  .admin-nav-btn { padding:7px 14px; border-radius:8px; border:1px solid var(--border); background:var(--bg2); color:var(--text2); font-size:12px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+  .admin-nav-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .admin-nav-btn:hover:not(.active) { border-color:var(--accent); color:var(--text); }
+  .admin-section { display:none; }
+  .admin-section.active { display:block; }
+  .user-actions { display:flex; gap:4px; flex-wrap:wrap; }
+  .action-btn { padding:4px 10px; border-radius:6px; border:none; font-size:10px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+  .action-btn.approve { background:rgba(0,230,118,0.15); color:var(--green); }
+  .action-btn.ban { background:rgba(255,61,87,0.15); color:var(--red); }
+  .action-btn.delete { background:rgba(255,61,87,0.2); color:var(--red); }
+  .action-btn.reset { background:rgba(0,212,255,0.15); color:var(--accent); }
+  .action-btn.sub { background:rgba(123,94,167,0.15); color:var(--accent2); }
+  .badge-premium { display:inline-block; font-size:9px; padding:2px 7px; border-radius:4px; background:rgba(0,212,255,0.15); color:var(--accent); font-weight:700; }
+  .badge-free { display:inline-block; font-size:9px; padding:2px 7px; border-radius:4px; background:var(--bg2); color:var(--text3); }
+  .badge-banned { display:inline-block; font-size:9px; padding:2px 7px; border-radius:4px; background:rgba(255,61,87,0.15); color:var(--red); }
+  #admin-login { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .overflow-x { overflow-x:auto; }
+</style>
+</head>
+<body>
+
+<!-- Admin Login -->
+<div id="admin-login">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-box" style="font-size:18px">🔐</div>
+    </div>
+    <div class="auth-title">Admin Panel</div>
+    <div class="auth-subtitle">Restricted access only</div>
+    <form id="adminLoginForm">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="form-input" type="text" id="adminUsername" placeholder="admin" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="adminPassword" placeholder="••••••••" required>
+      </div>
+      <div class="form-error hidden" id="adminLoginError"></div>
+      <button class="btn btn-primary btn-block" type="submit">Login</button>
+    </form>
+  </div>
+</div>
+
+<!-- Admin Dashboard -->
+<div id="admin-dashboard" style="display:none; padding-bottom:20px">
+  <div class="admin-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:16px">⚡</div>
+      <span style="font-weight:700;font-size:1rem">Admin Panel</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="adminLogout()">Logout</button>
+  </div>
+
+  <div class="admin-wrapper">
+    <div class="admin-sidebar">
+      <button class="admin-nav-btn active" data-section="stats" onclick="switchSection('stats',this)">Dashboard</button>
+      <button class="admin-nav-btn" data-section="users" onclick="switchSection('users',this)">Users</button>
+      <button class="admin-nav-btn" data-section="signals" onclick="switchSection('signals',this)">Signals</button>
+      <button class="admin-nav-btn" data-section="trades" onclick="switchSection('trades',this)">Trades</button>
+      <button class="admin-nav-btn" data-section="revenue" onclick="switchSection('revenue',this)">Revenue</button>
+      <button class="admin-nav-btn" data-section="referrals" onclick="switchSection('referrals',this)">Referrals</button>
+      <button class="admin-nav-btn" data-section="settings" onclick="switchSection('settings',this)">Settings</button>
+      <button class="admin-nav-btn" data-section="logs" onclick="switchSection('logs',this)">Logs</button>
+    </div>
+
+    <!-- ─── Stats ─────────────────────────────── -->
+    <div class="admin-section active" id="section-stats">
+      <div class="card-grid card-grid-3" style="margin-bottom:16px">
+        <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value" id="st-totalUsers">—</div></div>
+        <div class="stat-card"><div class="stat-label">Premium</div><div class="stat-value accent" id="st-premiumUsers">—</div></div>
+        <div class="stat-card"><div class="stat-label">Active</div><div class="stat-value green" id="st-activeUsers">—</div></div>
+        <div class="stat-card"><div class="stat-label">Banned</div><div class="stat-value red" id="st-bannedUsers">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value" id="st-totalTrades">—</div></div>
+        <div class="stat-card"><div class="stat-label">Open Trades</div><div class="stat-value" id="st-openTrades">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total Signals</div><div class="stat-value" id="st-totalSignals">—</div></div>
+        <div class="stat-card"><div class="stat-label">Today Signals</div><div class="stat-value" id="st-todaySignals">—</div></div>
+        <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value green" id="st-revenue">—</div></div>
+      </div>
+    </div>
+
+    <!-- ─── Users ─────────────────────────────── -->
+    <div class="admin-section" id="section-users">
+      <div class="section-header">
+        <div class="section-title">Users</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadUsers()">↻ Refresh</button>
+      </div>
+      <div class="overflow-x">
+        <table class="admin-table" id="users-table">
+          <thead><tr><th>User</th><th>Email</th><th>Status</th><th>Plan</th><th>Trades</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="users-tbody"><tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── Signals ────────────────────────────── -->
+    <div class="admin-section" id="section-signals">
+      <div class="section-header">
+        <div class="section-title">Signals</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadAdminSignals()">↻ Refresh</button>
+      </div>
+      <div class="overflow-x">
+        <table class="admin-table">
+          <thead><tr><th>Symbol</th><th>Dir</th><th>Score</th><th>Entry</th><th>SL</th><th>TP</th><th>RR</th><th>Time</th></tr></thead>
+          <tbody id="signals-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── Trades ─────────────────────────────── -->
+    <div class="admin-section" id="section-trades">
+      <div class="section-header">
+        <div class="section-title">All Trades</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadAdminTrades()">↻ Refresh</button>
+      </div>
+      <div class="overflow-x">
+        <table class="admin-table">
+          <thead><tr><th>User</th><th>Symbol</th><th>Dir</th><th>Entry</th><th>Status</th><th>PNL</th><th>Opened</th></tr></thead>
+          <tbody id="trades-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── Revenue ────────────────────────────── -->
+    <div class="admin-section" id="section-revenue">
+      <div class="section-title" style="margin-bottom:12px">Revenue</div>
+      <div class="overflow-x">
+        <table class="admin-table">
+          <thead><tr><th>User</th><th>Amount</th><th>Plan</th><th>Expiry</th></tr></thead>
+          <tbody id="revenue-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── Referrals ──────────────────────────── -->
+    <div class="admin-section" id="section-referrals">
+      <div class="section-title" style="margin-bottom:12px">Referral Statistics</div>
+      <div class="overflow-x">
+        <table class="admin-table">
+          <thead><tr><th>User</th><th>Referrals</th><th>Earnings</th></tr></thead>
+          <tbody id="referrals-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── Settings ───────────────────────────── -->
+    <div class="admin-section" id="section-settings">
+      <div class="section-title" style="margin-bottom:16px">Platform Settings</div>
+      <form id="settingsForm">
+        <div class="card" style="margin-bottom:16px">
+          <div class="fw-700" style="margin-bottom:14px">Support Information</div>
+          <div class="form-group">
+            <label class="form-label">Telegram Username</label>
+            <input class="form-input" id="s-telegram" placeholder="@username">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Telegram Link</label>
+            <input class="form-input" id="s-telegramLink" placeholder="https://t.me/...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp</label>
+            <input class="form-input" id="s-whatsapp" placeholder="+1234567890">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" id="s-email" placeholder="support@...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Support Message</label>
+            <textarea class="form-input" id="s-message" rows="3" placeholder="Help message shown to users…"></textarea>
+          </div>
+        </div>
+        <button class="btn btn-primary" type="submit">Save Settings</button>
+      </form>
+    </div>
+
+    <!-- ─── Logs ───────────────────────────────── -->
+    <div class="admin-section" id="section-logs">
+      <div class="section-header">
+        <div class="section-title">System Logs</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadLogs()">↻ Refresh</button>
+      </div>
+      <div id="logs-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Subscription Modal -->
+<div class="modal-overlay" id="subModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Edit Subscription</h3>
+      <button class="modal-close" onclick="closeModal('subModal')">✕</button>
+    </div>
+    <form id="subForm">
+      <input type="hidden" id="sub-userId">
+      <div class="form-group">
+        <label class="form-label">Plan</label>
+        <select class="form-select" id="sub-plan">
+          <option value="monthly">Monthly</option>
+          <option value="quarterly">Quarterly</option>
+          <option value="yearly">Yearly</option>
+          <option value="lifetime">Lifetime</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Duration</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <div><label class="form-label" style="font-size:10px">Days</label><input class="form-input" type="number" id="sub-days" placeholder="0" min="0"></div>
+          <div><label class="form-label" style="font-size:10px">Months</label><input class="form-input" type="number" id="sub-months" placeholder="0" min="0"></div>
+          <div><label class="form-label" style="font-size:10px">Years</label><input class="form-input" type="number" id="sub-years" placeholder="0" min="0"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount Paid ($)</label>
+        <input class="form-input" type="number" id="sub-amount" placeholder="0.00" step="0.01" min="0">
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <input type="checkbox" id="sub-premium" checked>
+        <label for="sub-premium" class="form-label" style="margin:0">Mark as Premium</label>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">Save Subscription</button>
+    </form>
+  </div>
+</div>
+
+<div id="notification-container"></div>
+
+<script>
+const ADMIN_API = '';
+let adminToken = localStorage.getItem('adminToken');
+
+function notify(title, msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `notification ${type}`;
+  el.innerHTML = `<div class="notification-title">${title}</div><div class="notification-msg">${msg}</div>`;
+  document.getElementById('notification-container').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+async function adminGet(path) {
+  const r = await fetch(ADMIN_API + path, { headers: { Authorization: 'Bearer ' + adminToken } });
+  if (r.status === 401 || r.status === 403) { adminLogout(); return null; }
+  return r.json();
+}
+async function adminPost(path, body) {
+  const r = await fetch(ADMIN_API + path, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + adminToken }, body: JSON.stringify(body) });
+  return r.json();
+}
+async function adminPut(path, body) {
+  const r = await fetch(ADMIN_API + path, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + adminToken }, body: JSON.stringify(body) });
+  return r.json();
+}
+async function adminDelete(path) {
+  const r = await fetch(ADMIN_API + path, { method: 'DELETE', headers: { Authorization: 'Bearer ' + adminToken } });
+  return r.json();
+}
+
+function fmt(n, d = 2) { return parseFloat(n || 0).toFixed(d); }
+function timeAgo(iso) {
+  if (!iso) return '—';
+  const d = Date.now() - new Date(iso).getTime();
+  if (d < 60000) return Math.floor(d/1000) + 's ago';
+  if (d < 3600000) return Math.floor(d/60000) + 'm ago';
+  if (d < 86400000) return Math.floor(d/3600000) + 'h ago';
+  return new Date(iso).toLocaleDateString();
+}
+
+function adminLogout() {
+  localStorage.removeItem('adminToken');
+  window.location.reload();
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+// Login
+document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button');
+  const err = document.getElementById('adminLoginError');
+  btn.textContent = 'Logging in…'; btn.disabled = true;
+  err.classList.add('hidden');
+  try {
+    const r = await fetch('/api/auth/admin-login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: document.getElementById('adminUsername').value, password: document.getElementById('adminPassword').value })
+    });
+    const data = await r.json();
+    if (data.token) {
+      adminToken = data.token;
+      localStorage.setItem('adminToken', adminToken);
+      showDashboard();
+    } else {
+      err.textContent = data.error || 'Login failed';
+      err.classList.remove('hidden');
+    }
+  } catch { err.textContent = 'Connection error'; err.classList.remove('hidden'); }
+  finally { btn.textContent = 'Login'; btn.disabled = false; }
+});
+
+function showDashboard() {
+  document.getElementById('admin-login').style.display = 'none';
+  document.getElementById('admin-dashboard').style.display = 'block';
+  loadStats();
+}
+
+function switchSection(name, btn) {
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  btn.classList.add('active');
+  switch(name) {
+    case 'stats': loadStats(); break;
+    case 'users': loadUsers(); break;
+    case 'signals': loadAdminSignals(); break;
+    case 'trades': loadAdminTrades(); break;
+    case 'revenue': loadRevenue(); break;
+    case 'referrals': loadReferrals(); break;
+    case 'settings': loadSettings(); break;
+    case 'logs': loadLogs(); break;
+  }
+}
+
+// Stats
+async function loadStats() {
+  const d = await adminGet('/api/admin/dashboard');
+  if (!d) return;
+  document.getElementById('st-totalUsers').textContent = d.totalUsers;
+  document.getElementById('st-premiumUsers').textContent = d.premiumUsers;
+  document.getElementById('st-activeUsers').textContent = d.activeUsers;
+  document.getElementById('st-bannedUsers').textContent = d.bannedUsers;
+  document.getElementById('st-totalTrades').textContent = d.totalTrades;
+  document.getElementById('st-openTrades').textContent = d.openTrades;
+  document.getElementById('st-totalSignals').textContent = d.totalSignals;
+  document.getElementById('st-todaySignals').textContent = d.todaySignals;
+  document.getElementById('st-revenue').textContent = '$' + fmt(d.totalRevenue);
+}
+
+// Users
+async function loadUsers() {
+  const users = await adminGet('/api/admin/users');
+  if (!users) return;
+  const tbody = document.getElementById('users-tbody');
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td><span class="fw-700">@${u.username}</span></td>
+      <td style="font-size:11px;color:var(--text3)">${u.email}</td>
+      <td>${u.isBanned ? '<span class="badge-banned">Banned</span>' : '<span style="color:var(--green);font-size:11px">Active</span>'}</td>
+      <td>${u.isPremium ? '<span class="badge-premium">Premium</span>' : '<span class="badge-free">Free</span>'}</td>
+      <td>${u.stats?.totalTrades || 0}</td>
+      <td style="font-size:11px;color:var(--text3)">${timeAgo(u.createdAt)}</td>
+      <td>
+        <div class="user-actions">
+          <button class="action-btn approve" onclick="approveUser('${u.id}')">Approve</button>
+          <button class="action-btn ban" onclick="banUser('${u.id}','${u.isBanned}')">${u.isBanned ? 'Unban' : 'Ban'}</button>
+          <button class="action-btn sub" onclick="openSubModal('${u.id}')">Sub</button>
+          <button class="action-btn reset" onclick="resetStats('${u.id}')">Reset</button>
+          <button class="action-btn delete" onclick="deleteUser('${u.id}')">Del</button>
+        </div>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">No users</td></tr>';
+}
+
+async function approveUser(id) {
+  await adminPost(`/api/admin/users/${id}/approve`);
+  notify('User Approved', '', 'success'); loadUsers();
+}
+async function banUser(id, isBanned) {
+  const action = isBanned === 'true' ? 'unban' : 'ban';
+  await adminPost(`/api/admin/users/${id}/${action}`);
+  notify(action === 'ban' ? 'User Banned' : 'User Unbanned', '', 'info'); loadUsers();
+}
+async function resetStats(id) {
+  if (!confirm('Reset stats for this user?')) return;
+  await adminPost(`/api/admin/users/${id}/reset-stats`);
+  notify('Stats Reset', '', 'info'); loadUsers();
+}
+async function deleteUser(id) {
+  if (!confirm('PERMANENTLY delete this user?')) return;
+  await adminDelete(`/api/admin/users/${id}`);
+  notify('User Deleted', '', 'danger'); loadUsers();
+}
+function openSubModal(id) {
+  document.getElementById('sub-userId').value = id;
+  openModal('subModal');
+}
+
+document.getElementById('subForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('sub-userId').value;
+  const payload = {
+    plan: document.getElementById('sub-plan').value,
+    days: document.getElementById('sub-days').value,
+    months: document.getElementById('sub-months').value,
+    years: document.getElementById('sub-years').value,
+    amount: document.getElementById('sub-amount').value,
+    isPremium: document.getElementById('sub-premium').checked,
+  };
+  await adminPost(`/api/admin/users/${id}/subscription`, payload);
+  notify('Subscription Updated', '', 'success');
+  closeModal('subModal'); loadUsers();
+});
+
+// Signals
+async function loadAdminSignals() {
+  const sigs = await adminGet('/api/admin/signals');
+  if (!sigs) return;
+  document.getElementById('signals-tbody').innerHTML = sigs.map(s => `
+    <tr>
+      <td class="fw-700">${s.symbol}</td>
+      <td style="color:${s.direction==='BUY'?'var(--green)':'var(--red)'};font-weight:700">${s.direction}</td>
+      <td style="color:var(--accent)">${s.score}</td>
+      <td>${parseFloat(s.entry||0).toFixed(4)}</td>
+      <td style="color:var(--red)">${parseFloat(s.sl||0).toFixed(4)}</td>
+      <td style="color:var(--green)">${parseFloat(s.tp||0).toFixed(4)}</td>
+      <td>${parseFloat(s.rr||0).toFixed(2)}</td>
+      <td style="font-size:11px;color:var(--text3)">${timeAgo(s.generatedAt)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text3)">No signals</td></tr>';
+}
+
+// Trades
+async function loadAdminTrades() {
+  const trades = await adminGet('/api/admin/trades');
+  if (!trades) return;
+  document.getElementById('trades-tbody').innerHTML = trades.slice(0,100).map(t => `
+    <tr>
+      <td style="font-size:11px">${t.userId.slice(0,8)}</td>
+      <td class="fw-700">${t.symbol}</td>
+      <td style="color:${(t.direction==='BUY'||t.direction==='LONG')?'var(--green)':'var(--red)'};">${t.direction}</td>
+      <td>${parseFloat(t.entry||0).toFixed(4)}</td>
+      <td>${t.status}</td>
+      <td style="color:${parseFloat(t.pnl||0)>=0?'var(--green)':'var(--red)'}">${(parseFloat(t.pnl||0)>=0?'+':'')}$${parseFloat(t.pnl||0).toFixed(2)}</td>
+      <td style="font-size:11px;color:var(--text3)">${timeAgo(t.openedAt)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">No trades</td></tr>';
+}
+
+// Revenue
+async function loadRevenue() {
+  const rev = await adminGet('/api/admin/revenue');
+  if (!rev) return;
+  document.getElementById('revenue-tbody').innerHTML = rev.map(r => `
+    <tr>
+      <td class="fw-700">${r.username}</td>
+      <td style="color:var(--green);font-weight:700">$${parseFloat(r.amount||0).toFixed(2)}</td>
+      <td>${r.plan}</td>
+      <td style="font-size:11px">${r.expiry ? new Date(r.expiry).toLocaleDateString() : '—'}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text3)">No revenue data</td></tr>';
+}
+
+// Referrals
+async function loadReferrals() {
+  const refs = await adminGet('/api/admin/referrals');
+  if (!refs) return;
+  document.getElementById('referrals-tbody').innerHTML = refs.map(r => `
+    <tr>
+      <td class="fw-700">${r.username}</td>
+      <td>${r.referrals}</td>
+      <td style="color:var(--green)">$${parseFloat(r.earnings||0).toFixed(2)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text3)">No referral data</td></tr>';
+}
+
+// Settings
+async function loadSettings() {
+  const s = await adminGet('/api/admin/settings');
+  if (!s) return;
+  document.getElementById('s-telegram').value = s.telegramUsername || '';
+  document.getElementById('s-telegramLink').value = s.telegramLink || '';
+  document.getElementById('s-whatsapp').value = s.whatsapp || '';
+  document.getElementById('s-email').value = s.email || '';
+  document.getElementById('s-message').value = s.supportMessage || '';
+}
+
+document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  await adminPut('/api/admin/settings', {
+    telegramUsername: document.getElementById('s-telegram').value,
+    telegramLink: document.getElementById('s-telegramLink').value,
+    whatsapp: document.getElementById('s-whatsapp').value,
+    email: document.getElementById('s-email').value,
+    supportMessage: document.getElementById('s-message').value,
+  });
+  notify('Settings Saved', '', 'success');
+});
+
+// Logs
+async function loadLogs() {
+  const logs = await adminGet('/api/admin/logs');
+  if (!logs) return;
+  const list = document.getElementById('logs-list');
+  list.innerHTML = logs.map(l => `
+    <div class="card" style="margin-bottom:8px;padding:10px 14px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="fw-700" style="font-size:12px">${l.type} · ${l.action || l.message || ''}</span>
+        <span style="font-size:11px;color:var(--text3)">${timeAgo(l.time)}</span>
+      </div>
+      ${l.userId ? `<div style="font-size:11px;color:var(--text3)">User: ${l.userId}</div>` : ''}
+    </div>
+  `).join('') || '<div class="empty-state"><p>No logs</p></div>';
+}
+
+// Check if already logged in
+if (adminToken) showDashboard();
+</script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login — AI Crypto Trading</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-box">⚡</div>
+    </div>
+    <div class="auth-title">Welcome back</div>
+    <div class="auth-subtitle">Sign in to your trading account</div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="email" placeholder="you@email.com" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="password" placeholder="••••••••" required>
+      </div>
+      <div class="form-error hidden" id="loginError"></div>
+      <button class="btn btn-primary btn-block" type="submit" id="loginBtn">
+        Sign In
+      </button>
+    </form>
+
+    <div class="auth-link">
+      Don't have an account? <a href="register.html">Create account</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  if (localStorage.getItem('token')) window.location.href = 'dashboard.html';
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const err = document.getElementById('loginError');
+    btn.textContent = 'Signing in...';
+    btn.disabled = true;
+    err.classList.add('hidden');
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value,
+        })
+      });
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        window.location.href = 'dashboard.html';
+      } else {
+        err.textContent = data.error || 'Login failed';
+        err.classList.remove('hidden');
+      }
+    } catch {
+      err.textContent = 'Connection error. Try again.';
+      err.classList.remove('hidden');
+    } finally {
+      btn.textContent = 'Sign In';
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

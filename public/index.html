@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Crypto Trading Platform</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .hero { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center;
+    background-image: radial-gradient(ellipse at 30% 40%, rgba(0,212,255,0.08) 0%, transparent 60%), radial-gradient(ellipse at 70% 60%, rgba(123,94,167,0.08) 0%, transparent 60%); }
+  .hero-logo { width:72px; height:72px; border-radius:20px; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:36px; margin:0 auto 20px; }
+  .hero-title { font-size:2rem; font-weight:800; margin-bottom:8px; background:linear-gradient(135deg,#fff,var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .hero-sub { font-size:1rem; color:var(--text2); max-width:320px; margin:0 auto 28px; }
+  .hero-btns { display:flex; flex-direction:column; gap:12px; width:100%; max-width:280px; margin:0 auto 32px; }
+  .features { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; width:100%; max-width:400px; margin:0 auto; }
+  .feature { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; text-align:left; }
+  .feature-icon { font-size:24px; margin-bottom:8px; }
+  .feature-title { font-size:13px; font-weight:700; margin-bottom:4px; }
+  .feature-desc { font-size:11px; color:var(--text3); }
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-logo">⚡</div>
+  <h1 class="hero-title">AI Crypto Trading</h1>
+  <p class="hero-sub">Smart Money Concept signals with automated Binance trading. 90%+ confidence only.</p>
+
+  <div class="hero-btns">
+    <a href="dashboard.html" class="btn btn-primary btn-block" style="text-decoration:none;justify-content:center">Open Dashboard</a>
+    <a href="login.html" class="btn btn-ghost btn-block" style="text-decoration:none;justify-content:center">Sign In</a>
+    <a href="register.html" class="btn btn-ghost btn-block" style="text-decoration:none;justify-content:center">Create Account</a>
+  </div>
+
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">🎯</div>
+      <div class="feature-title">SMC Signals</div>
+      <div class="feature-desc">BOS, CHoCH, Order Blocks, FVG, Liquidity Sweeps</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🤖</div>
+      <div class="feature-title">Auto Trading</div>
+      <div class="feature-desc">Spot & Futures with smart risk management</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📊</div>
+      <div class="feature-title">Live Market</div>
+      <div class="feature-desc">All USDT pairs with real-time WebSocket data</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🛡️</div>
+      <div class="feature-title">Risk Engine</div>
+      <div class="feature-desc">ATR SL, Dynamic sizing, Recovery mode</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🎁</div>
+      <div class="feature-title">Referral System</div>
+      <div class="feature-desc">Earn commissions from your referrals</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">Binance Sync</div>
+      <div class="feature-desc">Instant import of all positions and orders</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Redirect to dashboard if already logged in
+  if (localStorage.getItem('token')) window.location.href = 'dashboard.html';
+</script>
+</body>
+</html>
