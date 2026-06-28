@@ -1,0 +1,16 @@
+{
+  "username": "admin",
+  "passwordHash": "",
+  "lastLogin": null,
+  "settings": {
+    "maintenanceMode": false,
+    "registrationOpen": true,
+    "defaultSubscriptionDays": 30,
+    "telegramUsername": "@support",
+    "telegramLink": "https://t.me/support",
+    "whatsapp": "+1234567890",
+    "email": "support@platform.com",
+    "supportMessage": "Need help? Reach out to us anytime through the channels below."
+  },
+  "logs": []
+}

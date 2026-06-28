@@ -1,0 +1,20 @@
+{
+  "version": "1.0.0",
+  "created": "",
+  "stats": {
+    "totalUsers": 0,
+    "premiumUsers": 0,
+    "totalTrades": 0,
+    "totalSignals": 0,
+    "totalRevenue": 0
+  },
+  "settings": {
+    "maintenanceMode": false,
+    "registrationOpen": true,
+    "telegramUsername": "@support",
+    "telegramLink": "https://t.me/support",
+    "whatsapp": "+1234567890",
+    "email": "support@platform.com",
+    "supportMessage": "Need help? Contact us anytime!"
+  }
+}
